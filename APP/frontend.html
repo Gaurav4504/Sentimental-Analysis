@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis with Filters</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+        }
+        .filters {
+            margin-bottom: 20px;
+        }
+        select {
+            margin: 5px;
+            padding: 5px;
+        }
+        #analyze-form {
+            max-width: 500px;
+            margin: 20px auto;
+            display: flex;
+            flex-direction: column;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        .analyze-btn {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .analyze-btn:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sentiment Analysis</h1>
+    <div class="filters">
+        <select id="sortBy">
+            <option value="top">Sort by: Top reviews</option>
+            <option value="recent">Sort by: Most recent</option>
+        </select>
+        <select id="filterVerified">
+            <option value="all">Filter by: All purchases</option>
+            <option value="verified">Filter by: Verified purchases only</option>
+        </select>
+        <select id="filterRating">
+            <option value="all">All ratings</option>
+            <option value="5">5-star only</option>
+            <option value="4">4-star only</option>
+            <option value="3">3-star only</option>
+        </select>
+        <select id="filterVariants">
+            <option value="all">All variants</option>
+            <option value="variant1">Variant 1</option>
+            <option value="variant2">Variant 2</option>
+        </select>
+        <select id="filterContent">
+            <option value="all">All text, image, and video reviews</option>
+            <option value="text">Text reviews only</option>
+            <option value="image">Image reviews only</option>
+            <option value="video">Video reviews only</option>
+        </select>
+    </div>
+    <form id="analyze-form">
+        <label for="review">Enter your review:</label>
+        <textarea id="review" name="review" placeholder="Type your review here..."></textarea>
+        <button type="button" class="analyze-btn" onclick="analyzeSentiment()">Analyze</button>
+    </form>
+    <div id="result" class="result" style="display: none;" aria-live="polite"></div>
+
+    <!-- JavaScript Code -->
+    <script>
+        async function analyzeSentiment() {
+            const review = document.getElementById('review').value;
+            const resultDiv = document.getElementById('result');
+
+            if (!review.trim()) {
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = '<strong>Error:</strong> Review text cannot be empty.';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ review: review }),
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = `<strong>Sentiment:</strong> ${result.sentiment}<br><strong>Review:</strong> ${result.review}`;
+                } else {
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = `<strong>Error:</strong> Unable to process the review. Server returned status ${response.status}.`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = '<strong>Error:</strong> Unable to connect to the server.';
+            }
+        }
+    </script>
+</body>
+</html>
